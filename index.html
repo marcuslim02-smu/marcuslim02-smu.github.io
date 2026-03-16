@@ -1655,16 +1655,18 @@ function buildRailAcctSelector(railId){
   var ccyNow=document.getElementById('p-ccy').value;
   var usdAmt=parseAmt(document.getElementById('p-amt').value)/FX[ccyNow];
   var requiredType=railTypeMap[railId]||'tokenized';
-  var requiredWall=railWallMap[railId]||null; // null means any wall of that type
+  var requiredWall=railWallMap[railId]||null;
 
   var accts=linkedAccounts.filter(function(a){
-    // Must match account type (tokenized/fiat/stablecoin)
+    // Must match account type
     if(a.accountType!==requiredType)return false;
     // If specific wall required, enforce it
     if(requiredWall&&a.wall!==requiredWall)return false;
-    // Currency must match (except SWIFT which shows all USD fiat accounts)
-    if(railId==='swift')return true; // SWIFT shows all fiat regardless of currency
-    return a.ccy===ccyNow;
+    // SWIFT: show all fiat accounts regardless of currency
+    if(railId==='swift')return true;
+    // All other rails: show ALL accounts of the correct type (any currency)
+    // Cross-currency is allowed — FX fee will be applied
+    return true;
   });
 
   var wrapper=document.getElementById('rail-acct-selector');
@@ -1673,23 +1675,39 @@ function buildRailAcctSelector(railId){
 
   if(!accts.length){wrapper.style.display='none';return;}
 
-  lbl.textContent='Debit from account ('+(accts.length+' available')+')';
+  // Sort: same-currency accounts first (no FX), then cross-currency (FX applies)
+  accts.sort(function(a,b){
+    var aMatch=(a.ccy===ccyNow)?0:1;
+    var bMatch=(b.ccy===ccyNow)?0:1;
+    if(aMatch!==bMatch)return aMatch-bMatch;
+    return (a.balUSD||0)>(b.balUSD||0)?-1:1; // higher balance first within group
+  });
+
+  lbl.textContent='Debit from account ('+accts.length+' available)';
   wrapper.style.display='block';
 
   grid.innerHTML=accts.map(function(a){
     var sel=(selSourceAcct&&selSourceAcct.id===a.id);
     var isInsuf=(usdAmt>0&&a.balUSD&&usdAmt>a.balUSD);
+    var isCrossCcy=(a.ccy!==ccyNow);
     var cls='rail-acct-card'+(sel?' sel':'')+(isInsuf?' insuf':'');
     var clickAttr=isInsuf?'title="Insufficient balance"':'data-aid="'+a.id+'" onclick="pickRailAcct(this.dataset.aid)"';
     var balColor=isInsuf?'color:var(--red)':'color:var(--text-muted)';
     var insufTag=isInsuf?'<span style="font-size:10px;color:var(--red);font-weight:700;margin-left:6px">⚠ Low</span>':'';
+    // FX indicator for cross-currency accounts
+    var fxTag=isCrossCcy&&!isInsuf
+      ?'<span style="font-size:10px;color:var(--gold);font-weight:700;margin-left:5px;padding:1px 6px;background:var(--gold-l);border-radius:7px">FX</span>'
+      :'';
+    var subNote=isCrossCcy
+      ?'<div style="font-size:10px;color:var(--gold);margin-top:2px">FX conversion applies · '+a.ccy+'→'+ccyNow+'</div>'
+      :'';
     return '<div class="'+cls+'" '+clickAttr+'>'
       +'<div style="flex:1;min-width:0">'
-        +'<div style="font-weight:600">'+a.label+'</div>'
+        +'<div style="font-weight:600;display:flex;align-items:center;gap:4px">'+a.label+fxTag+insufTag+'</div>'
         +'<div style="font-size:11px;margin-top:1px;'+balColor+'">'+a.balance+' available · '+a.func+' · '+a.gl+'</div>'
+        +subNote
       +'</div>'
-      +'<span class="badge '+(sel?'b-b':'b-x')+'">'+a.ccy+'</span>'
-      +insufTag
+      +'<span class="badge '+(isCrossCcy?'b-a':sel?'b-b':'b-x')+'">'+a.ccy+'</span>'
       +'</div>';
   }).join('');
 }
