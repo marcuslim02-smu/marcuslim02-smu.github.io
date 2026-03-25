@@ -636,7 +636,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
   <div class="sl" id="appr-queue-label">Awaiting your sign-off</div>
 
   <!-- A1: 2-of-2 -->
-  <div class="apc ny" id="card-A1" data-submitted-by="MT">
+  <div class="apc ny" id="card-A1" data-submitted-by="MT" data-txid="A1">
     <div class="aph">
       <div><div class="apt">Supplier GmbH (DE) — Trade settlement</div><div class="apm">Submitted by <strong>M. Torres (Treasury Analyst)</strong> · 13 Mar 09:05 UTC · Expires 14 Mar 09:05</div></div>
       <span class="csq">⚡ 2-of-2 required</span>
@@ -657,7 +657,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
   </div>
 
   <!-- A2: Treasurer only -->
-  <div class="apc nt" id="card-A2" data-submitted-by="LK">
+  <div class="apc nt" id="card-A2" data-submitted-by="LK" data-txid="A2">
     <div class="aph">
       <div><div class="apt">Taipei Logistics Co — Vendor payment</div><div class="apm">Submitted by <strong>L. Kim (Treasury Analyst)</strong> · 13 Mar 08:15 UTC · Expires 14 Mar 08:15</div></div>
       <span class="badge b-b" style="font-size:11px;padding:3px 10px">Treasurer sign only</span>
@@ -800,7 +800,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
         <table class="tbl" id="pay-tbl">
           <thead><tr><th>Date</th><th>Submitter</th><th>Receiver</th><th class="num">Amount</th><th>Wallet</th><th>Status</th><th>Approval</th><th></th></tr></thead>
           <tbody id="pay-tbody">
-            <tr data-cat="bank"><td>13 Mar</td><td class="c-muted">M. Torres</td><td>Supplier GmbH DE</td><td class="num">€3,200,000</td><td><span class="badge b-b">Kinexys</span></td><td><span class="badge b-a">Pending</span></td><td><span class="csq">Your sign</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px" onclick="downloadInvoice('INV-2025-0341','Supplier GmbH DE','€3,200,000','13 Mar 2025','Kinexys')">⬇ Invoice</button> <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('INV-2025-0341')">🔐 Msg</button></td></tr>
+            <tr data-cat="bank" data-txid="A1"><td>13 Mar</td><td class="c-muted">M. Torres</td><td>Supplier GmbH DE</td><td class="num">€3,200,000</td><td><span class="badge b-b">Kinexys</span></td><td><span id="txstatus-A1" class="badge b-a">Pending</span></td><td><span id="txappr-A1" class="csq">Your sign</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px" onclick="downloadInvoice('INV-2025-0341','Supplier GmbH DE','€3,200,000','13 Mar 2025','Kinexys')">⬇ Invoice</button> <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('INV-2025-0341')">🔐 Msg</button></td></tr>
+            <tr data-cat="bank" data-txid="A2"><td>13 Mar</td><td class="c-muted">LK</td><td>Taipei Logistics Co</td><td class="num">$285,000</td><td><span class="badge b-b">Kinexys</span></td><td><span id="txstatus-A2" class="badge b-a">Pending</span></td><td><span id="txappr-A2" class="csq">Treasurer sign</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('PO-2025-0112')">🔐 Msg</button></td></tr>
             <tr data-cat="bank"><td>12 Mar</td><td class="c-muted">A. Patel</td><td>Acme SG Pte Ltd</td><td class="num">SGD 8,000,000</td><td><span class="badge b-t">HSBC Orion</span></td><td><span class="badge b-g">Settled</span></td><td><span class="badge b-g">Both signed</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px" onclick="downloadInvoice('PMT-2025-0312','Acme SG Pte Ltd','SGD 8,000,000','12 Mar 2025','HSBC Orion')">⬇ Invoice</button> <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('PMT-2025-0312')">🔐 Msg</button></td></tr>
             <tr data-cat="stable"><td>12 Mar</td><td class="c-muted">M. Torres</td><td>US payroll processor</td><td class="num">$48,000</td><td><span class="badge b-p">USDC</span></td><td><span class="badge b-g">Settled</span></td><td><span class="badge b-x">Auto-released</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px" onclick="downloadInvoice('PAY-2025-0312','US Payroll','$48,000','12 Mar 2025','USDC')">⬇ Invoice</button> <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('PAY-2025-0312')">🔐 Msg</button></td></tr>
             <tr data-cat="bank"><td>12 Mar</td><td class="c-muted">L. Kim</td><td>Taiwan Mfg Co</td><td class="num">$4,800,000</td><td><span class="badge b-t">HSBC Orion</span></td><td><span class="badge b-g">Settled</span></td><td><span class="badge b-g">Both signed</span></td><td><button class="btn" style="font-size:10px;padding:2px 7px" onclick="downloadInvoice('INV-2025-0310','Taiwan Mfg Co','$4,800,000','12 Mar 2025','HSBC Orion')">⬇ Invoice</button> <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" onclick="viewSignedMessage('INV-2025-0310')">🔐 Msg</button></td></tr>
@@ -2599,6 +2600,15 @@ var txSignedMessages={};     // ref → {message, msgHash, sig, dispatchHash, pu
       dispatchHash:'3b6c9d2e5f8a1b4c7d0e3f6a9b2c5d8e1f4a7b0c3d6e9f2a5b8c1d4e7f0a3',
       pubKey:'0x04a3b7c2d9e1f4a8b2c5d3e6f0a9b4c7d2e5f8a1b3c6d9e2f5a8b1c4d7e0f3',
       ts:'2026-03-11T06:50:19Z'
+    },
+    {
+      ref:'PO-2025-0112',
+      message:JSON.stringify({type:'APPROVAL_SIGN',id:'PO-2025-0112',description:'Vendor payment to Taipei Logistics Co',amount:'$285,000',receiver:'Taipei Logistics Co',rail:'Kinexys Digital Payments',reference:'PO-2025-0112',sourceAccount:'Kinexys Payment Wallet — USD',signer:'L. Kim',role:'Treasury Analyst',timestamp:'2026-03-13T08:15:00Z',nonce:'f7k2n9p4q8'},null,2),
+      msgHash:'7c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3c6d9e2f5a8b1c4d7e0f3a6b9c2',
+      sig:'MEQCIBz0xPyQzRaS bTcUdVeWfXgYhZiAjBkClDmEnFoGpHqIrJsKtLuMvN==',
+      dispatchHash:'d1e4f7a0b3c6d9e2f5a8b1c4d7e0f3a6b9c2d5e8f1a4b7c0d3e6f9a2b5c8d1',
+      pubKey:'0x04a3b7c2d9e1f4a8b2c5d3e6f0a9b4c7d2e5f8a1b3c6d9e2f5a8b1c4d7e0f3',
+      ts:'2026-03-13T08:15:45Z'
     },
     {
       ref:'LGL-2025-0310',
