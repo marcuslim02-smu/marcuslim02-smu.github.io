@@ -2741,21 +2741,25 @@ function openWalletModal(id,needsCFO){
 
   // Build transaction message for approval sign-off
   var cardTitle=document.querySelector('#card-'+id+' .apt');
-  var amountEls=document.querySelectorAll('#card-'+id+' .dv');
-  var amt=amountEls.length?amountEls[0].textContent.split('\n')[0].trim():'';
-  var recvEls=document.querySelectorAll('#card-'+id+' .dv');
-  var recv=recvEls.length>2?recvEls[2].textContent.split('\n')[0].trim():'';
+  var _dvs=document.querySelectorAll('#card-'+id+' .dv');
+  // .dv order: 0=Amount, 1=Wallet/Rail, 2=Receiver, 3=Reference
+  var amt=_dvs.length>0?_dvs[0].childNodes[0].textContent.trim():'';
+  var recv=_dvs.length>2?_dvs[2].childNodes[0].textContent.trim():'';
   var ref=document.querySelectorAll('#card-'+id+' .dv')[3];
   var refTxt=ref?ref.textContent.trim():'';
+  var _approvalId='APR-'+id+'-'+Date.now().toString().slice(-8);
   var ctx={
     type:'APPROVAL_SIGN',
-    id:'APR-'+id+'-'+Date.now().toString().slice(-8),
+    id:_approvalId,
     description:cardTitle?cardTitle.textContent:'Payment '+id,
     amount:amt, receiver:recv, ref:refTxt,
     signer:'Marcus Lim', role:'Treasurer',
     timestamp:new Date().toISOString(),
     nonce:Math.random().toString(36).slice(2,12),
   };
+  // Store approval ID on card so finaliseApproval can look up the signed message
+  var _signCard=document.getElementById('card-'+id);
+  if(_signCard)_signCard.setAttribute('data-approval-id',_approvalId);
   var msg=buildTxMessage(ctx);
   document.getElementById('wm-tx-payload').textContent=msg;
   document.getElementById('wm-hash-section').style.display='none';
@@ -2984,12 +2988,12 @@ function finaliseApproval(id,needsCFO,sigShort,dispatchHash){
   if(!needsCFO){
     var aptTxt2=card.querySelector('.apt')?card.querySelector('.apt').textContent:'Payment';
     var dvEls2=card.querySelectorAll('.dv');
-    var amtTxt2=dvEls2.length?dvEls2[0].textContent.split('\n')[0].trim():'';
+    var amtTxt2=dvEls2.length>0?(dvEls2[0].childNodes[0]?dvEls2[0].childNodes[0].textContent.trim():dvEls2[0].textContent.split('\n')[0].trim()):'';
     var railEl=card.querySelector('.dv .badge');
     var railTxt=railEl?railEl.textContent.trim():'Kinexys';
     var walletBadge2=railTxt.includes('USDC')?'b-p':railTxt.includes('Orion')?'b-t':'b-b';
     var refEl=dvEls2.length>3?dvEls2[3].textContent.trim():'';
-    var receiverEl=dvEls2.length>2?dvEls2[2].textContent.split('\n')[0].trim():'';
+    var receiverEl=dvEls2.length>2?(dvEls2[2].childNodes[0]?dvEls2[2].childNodes[0].textContent.trim():dvEls2[2].textContent.split('\n')[0].trim()):'';
     var existingTxid=card.getAttribute('data-txid');
     // Only insert if not already linked to an existing row
     var alreadyLinked=existingTxid&&document.querySelector('#pay-tbody [data-txid="'+existingTxid+'"]');
@@ -3002,16 +3006,21 @@ function finaliseApproval(id,needsCFO,sigShort,dispatchHash){
       var submittedBy2=card.getAttribute('data-submitted-by')||'ML';
       var refVal2=refEl||('KNX-'+Date.now().toString().slice(-6));
       var dateStr2=fmtDateGMT8(nowGMT8());
+      // Get approval ID from card to look up signed message
+      var approvalId=card.getAttribute('data-approval-id')||existingTxid||refVal2;
+      var hasMsgRecord=approvalId&&txSignedMessages[approvalId];
+      // Build dispatch hash snippet for receiver cell
+      var hashSnippet=hasMsgRecord?'<div style="font-size:10px;color:var(--text-muted)">hash:'+txSignedMessages[approvalId].dispatchHash.slice(0,12)+'&hellip;</div>':'';
       newTxRow.innerHTML='<td><strong>'+fmtTimeGMT8(nowGMT8())+'</strong></td>'
         +'<td class="c-muted">'+submittedBy2+'</td>'
-        +'<td>'+receiverEl+'</td>'
+        +'<td>'+receiverEl+hashSnippet+'</td>'
         +'<td class="num">'+amtTxt2+'</td>'
         +'<td><span class="badge '+walletBadge2+'">'+railTxt+'</span></td>'
         +'<td><span class="badge b-g">Settled</span></td>'
         +'<td><span class="badge b-b">Treasurer signed</span></td>'
         +'<td style="white-space:nowrap">'
           +'<button class="btn" style="font-size:10px;padding:2px 7px" data-ref="'+refVal2+'" data-recv="'+receiverEl+'" data-amt="'+amtTxt2+'" data-date="'+dateStr2+'" data-wt="'+railTxt+'" onclick="downloadInvoice(this.dataset.ref,this.dataset.recv,this.dataset.amt,this.dataset.date,this.dataset.wt)">⬇ Invoice</button>'
-          +(existingTxid?' <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" data-txkey="'+existingTxid+'" onclick="viewSignedMessage(this.dataset.txkey)">🔐 Msg</button>':'')
+          +(approvalId?' <button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--blue-mid);color:var(--blue)" data-txkey="'+approvalId+'" onclick="viewSignedMessage(this.dataset.txkey)">🔐 Msg</button>':'')
         +'</td>';
       tbody2.insertBefore(newTxRow,tbody2.firstChild);
       setTimeout(function(){newTxRow.style.background='';},2000);
